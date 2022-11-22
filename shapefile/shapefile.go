@@ -3,20 +3,26 @@ package shapefile
 import (
 	"os"
 
+	fn "github.com/myuksal/sshhpp/function"
 	header "github.com/myuksal/sshhpp/shapefile/header"
 	index "github.com/myuksal/sshhpp/shapefile/index"
-	"github.com/myuksal/sshhpp/shapefile/record"
-	types "github.com/myuksal/sshhpp/shapefile/type"
+	record "github.com/myuksal/sshhpp/shapefile/record"
 )
 
-func ReadShapeFile(src string) (error, *header.ShapeHeader, func() any) {
-	indexFile, err := os.Open(src + ".shx")
-	if err != err {
-		return err, nil, nil
+type ShapeRecord interface {
+	Bind([]byte)
+}
+
+func ReadShapeFile[T ShapeRecord](src string, shape T) (func() (bool, T), error) {
+	fileName := fn.CreateFileNames(src)
+
+	indexFile, err := os.Open(fileName.Shx)
+	if err != nil {
+		return nil, err
 	}
-	shapeFile, err := os.Open(src + ".shp")
-	if err != err {
-		return err, nil, nil
+	shapeFile, err := os.Open(fileName.Shp)
+	if err != nil {
+		return nil, err
 	}
 
 	// Read index header
@@ -31,18 +37,13 @@ func ReadShapeFile(src string) (error, *header.ShapeHeader, func() any) {
 	// Create index generator
 	getOffset := index.ShapeIndexGenerator(indexRecordBuffer)
 
-	// Read shape header
-	shapeHeaderBuffer := make([]byte, 100)
-	shapeFile.Read(shapeHeaderBuffer)
-	shapeHeader := header.CreateShapeHeader(shapeHeaderBuffer)
-
 	// Record generator
-	return nil, &shapeHeader, func() any {
+	return func() (bool, T) {
 		indexRecord := getOffset()
 
 		// End of index
 		if indexRecord.RecordOffset == 0 {
-			return nil
+			return true, shape
 		}
 
 		// Seek record offset
@@ -59,23 +60,8 @@ func ReadShapeFile(src string) (error, *header.ShapeHeader, func() any) {
 
 		content := record.CreateRecordContent(recordContentBuffer)
 
-		var result any
-		switch content.Shape {
-		case types.Point:
-			result = record.CreatePointContent(*content.Content)
-			break
-		case types.MultiPoint:
-			result = record.CreateMultiPointContent(*content.Content)
-			break
-		case types.PolyLine:
-			result = record.CreatePolyLineContent(*content.Content)
-			break
-		case types.Polygon:
-			result = record.CreatePolygonContent(*content.Content)
-			break
-		}
-
-		return result
-	}
+		shape.Bind(content.Content)
+		return false, shape
+	}, nil
 
 }

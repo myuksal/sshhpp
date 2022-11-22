@@ -1,7 +1,7 @@
 package record
 
 import (
-	fn "github.com/myuksal/sshhpp/shapefile/function"
+	fn "github.com/myuksal/sshhpp/function"
 )
 
 type PolygonContent struct {
@@ -59,4 +59,13 @@ func CreatePolygonContent(bytes []byte) PolygonContent {
 		fn.LittleEndianFloat64(bytes[24:32]),
 		parts,
 	}
+}
+
+func (polygon *PolygonContent) Bind(bytes []byte) {
+	bufferPolygon := CreatePolyLineContent(bytes)
+	polygon.Parts = bufferPolygon.Parts
+	polygon.XMax = bufferPolygon.XMax
+	polygon.YMax = bufferPolygon.YMax
+	polygon.XMin = bufferPolygon.XMin
+	polygon.YMin = bufferPolygon.YMin
 }

@@ -1,7 +1,7 @@
 package record
 
 import (
-	fn "github.com/myuksal/sshhpp/shapefile/function"
+	fn "github.com/myuksal/sshhpp/function"
 )
 
 type PointContent struct {
@@ -23,4 +23,10 @@ func CreatePointContent(bytes []byte) PointContent {
 		fn.LittleEndianFloat64(bytes[0:8]),
 		fn.LittleEndianFloat64(bytes[8:16]),
 	}
+}
+
+func (point *PointContent) Bind(bytes []byte) {
+	newPoint := CreatePointContent(bytes)
+	point.X = newPoint.X
+	point.Y = newPoint.Y
 }

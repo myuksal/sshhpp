@@ -72,3 +72,7 @@ func (t ShapeType) String() string {
 		return ""
 	}
 }
+
+func (t ShapeType) Number() int {
+	return int(t)
+}

@@ -1,16 +1,15 @@
 package record
 
 import (
-	fn "github.com/myuksal/sshhpp/shapefile/function"
+	fn "github.com/myuksal/sshhpp/function"
 )
 
 type MultiPointContent struct {
-	XMin           float64
-	YMin           float64
-	XMax           float64
-	YMax           float64
-	NumberOfPoints uint32
-	Points         []PointContent
+	XMin   float64
+	YMin   float64
+	XMax   float64
+	YMax   float64
+	Points []PointContent
 }
 
 /**
@@ -40,7 +39,15 @@ func CreateMultiPointContent(bytes []byte) MultiPointContent {
 		fn.LittleEndianFloat64(bytes[8:16]),
 		fn.LittleEndianFloat64(bytes[16:24]),
 		fn.LittleEndianFloat64(bytes[24:32]),
-		numberOfPoints,
 		points,
 	}
+}
+
+func (multiPoint *MultiPointContent) Bind(bytes []byte) {
+	newMultiPoint := CreateMultiPointContent(bytes)
+	multiPoint.Points = newMultiPoint.Points
+	multiPoint.XMax = newMultiPoint.XMax
+	multiPoint.YMax = newMultiPoint.YMax
+	multiPoint.XMin = newMultiPoint.XMin
+	multiPoint.YMin = newMultiPoint.YMin
 }
