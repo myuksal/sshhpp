@@ -30,6 +30,7 @@ func ReadDbfFile(src string) (func() map[string]string, error) {
 			file.Read(fieldBuffer)
 			row[field.Name] = strings.Trim(string(fieldBuffer[:]), " ")
 		}
+		file.Seek(1, io.SeekCurrent)
 
 		return row
 	}, nil
